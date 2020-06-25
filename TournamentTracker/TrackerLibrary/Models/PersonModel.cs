@@ -16,5 +16,13 @@ namespace TrackerLibrary.Models
         public string EmailAdress { get; set; }
 
         public string CellphoneNumber { get; set; }
+
+        public string FullName
+        {
+            get
+            {
+                return $"{ FirstName } { Lastname }";
+            }
+        }
     }
 }

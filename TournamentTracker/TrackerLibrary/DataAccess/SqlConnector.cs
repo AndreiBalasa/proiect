@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Text;
 using TrackerLibrary.Models;
 
@@ -67,8 +68,45 @@ namespace TrackerLibrary.DataAccess
                 }
             }
 
+        public TeamModel CreateTeam(TeamModel model)
+        {
+            using (IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString("Tournament")))
+            {
+                
+                var p = new DynamicParameters();
+                p.Add("@TeamName", model.TeamName);
+                p.Add("@Id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-           
-        
+                connection.Execute("dbo.spTeams_Insert", p, commandType: CommandType.StoredProcedure);
+                model.Id= p.Get<int>("@Id");
+
+
+                foreach (PersonModel t in model.TeamMembers)
+                {
+                    var tm = new DynamicParameters();
+                    tm.Add("@TeamID", model.Id);
+                    tm.Add("@PersonId", t.Id);
+
+                    connection.Execute("dbo.spTeamMembers_Insert", tm, commandType: CommandType.StoredProcedure);
+                    
+                }
+
+                return model;
+
+            }
+        }
+
+        public List<PersonModel> GetPerson_All()
+        {
+            List<PersonModel> output;
+
+            using (IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString("Tournament")))
+            {
+                output = connection.Query<PersonModel>("dbo.spPeople_GetALL").ToList();
+                
+            }
+
+            return output;
+        }
     }
 }
