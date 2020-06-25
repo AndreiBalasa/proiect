@@ -18,6 +18,24 @@ namespace TrackerLibrary.DataAccess
 {
     public class SqlConnector : IDataConnection 
     {
+        public PersonModel CreatePerson(PersonModel model)
+        {
+            using (IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString("Tournament")))
+            {
+                var p = new DynamicParameters();
+                p.Add("@FirstName", model.FirstName);
+                p.Add("@LastName", model.Lastname);
+                p.Add("@EmailAddress", model.EmailAdress);
+                p.Add("@CellphoneNumber", model.CellphoneNumber);
+                p.Add("@Id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+                connection.Execute("dbo.spPeople_Insert", p, commandType: CommandType.StoredProcedure);
+
+                model.Id = p.Get<int>("@Id");
+
+                return model;
+            }
+        }
 
         // TODO - fa metoda sa salveze in baza de date
 
