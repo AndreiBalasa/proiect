@@ -48,7 +48,7 @@ namespace TrackerLibrary.DataAccess.TextHelpers
                 PrizeModel p = new PrizeModel();
 
                 p.Id = int.Parse(cols[0]);
-                p.PlaceNumber = int.Parse(cols[1]);
+                p.PlaceNumber = int.Parse(cols[1]); 
                 p.PlaceName = cols[2];
                 p.PrizeAmount = decimal.Parse(cols[3]);
                 p.PrizePercentage = double.Parse(cols[4]);
@@ -103,16 +103,184 @@ namespace TrackerLibrary.DataAccess.TextHelpers
 
                 string[] personIds = colls[2].Split('|');
 
-                foreach (string id in personIds)
-                {
-                    t.TeamMembers.Add(people.Where(x => x.Id == int.Parse(id)).First());
-                }
-
+                
+              
+                    foreach (string id in personIds)
+                    {
+                        t.TeamMembers.Add(people.Where(x => x.Id == int.Parse(id)).First());
+                    }
+                
                 output.Add(t);
             }
 
             return output;
         }
+
+
+        public static List<TournamentModel> ConvertToTournamentModels (
+            this List<string> lines, 
+            string TeamFileName,
+            string PeopleFileName,
+            string PrizesFileName)
+        {
+            // id,tournamentName,EntryFee,(id|id|id - lista de echipe),(id|id|id-lista de prizes),(Rounds - <list<list<matchupmodel>> - id^id^id|id^id^id|id^id^id)
+            // comentariul de mai sus e ca sa ma ajute sa vad cum ar trebui sa fie structura fisierului
+
+            List<TournamentModel> output = new List<TournamentModel>();
+            List<TeamModel> teams = TeamFileName.FullFilePath().LoadFile().ConvetToTeamModels(PeopleFileName);
+            List<PrizeModel> prizes = PrizesFileName.FullFilePath().LoadFile().ConvertToPrizeModels();
+
+
+            foreach (string line in lines)
+            {
+                string[] colls = line.Split(',');
+                TournamentModel tm = new TournamentModel();
+                tm.Id = int.Parse(colls[0]);
+                tm.TournamentName = colls[1];
+                tm.EntryFee = decimal.Parse(colls[2]);
+
+
+                string[] teamIds = colls[3].Split('|');
+
+                foreach (var id in teamIds)
+                {
+                    //t.TeamMembers.Add(people.Where(x => x.Id == int.Parse(id)).First());
+
+                    tm.EnteredTeams.Add(teams.Where(x => x.Id == int.Parse(id)).First());  //adauga in entered team prima echipa care coresc cu id ul 
+                }
+
+                string[] prizeIds = colls[4].Split('|');
+
+                foreach (string id in prizeIds)
+                {
+                    tm.Prizes.Add(prizes.Where(x => x.Id == int.Parse(id)).First());
+                }
+
+
+                //TODO - La fel si pt rounds...
+                output.Add(tm);
+            }
+
+            return output;
+
+        }
+
+        public static void SaveToTournamentFile(this List<TournamentModel> models,string fileName)
+        {
+
+            List<string> lines = new List<string>();
+
+            foreach(TournamentModel tm in models)
+            {
+
+                lines.Add($@"{ tm.Id },
+                            { tm.TournamentName },
+                            { tm.EntryFee },
+                            { ConvertTeamListToString(tm.EnteredTeams) },
+                            { ConvertPrizesToString(tm.Prizes) },
+                            { ConvertRoundsToString(tm.Rounds) }");
+
+            }
+
+            File.WriteAllLines(fileName.FullFilePath(), lines);
+
+        }
+
+
+        private static string ConvertRoundsToString(List<List<MatchupModel>> rounds)
+        {
+
+            string output = "";
+
+            if (rounds.Count == 0)
+            {
+
+                return "";
+
+            }
+
+            foreach (List<MatchupModel> r in rounds)
+            {
+                output += $"{ ConvertMatchupListToString(r) }|";
+            }
+
+            output = output.Substring(0, output.Length - 1); // am scos ultimul "|" din string
+
+            return output;
+
+        }
+
+        private static string ConvertMatchupListToString(List<MatchupModel> matchups)
+        {
+            string output = "";
+
+            if (matchups.Count == 0)
+            {
+
+                return "";
+
+            }
+
+            foreach (MatchupModel p in matchups)
+            {
+                output += $"{ p.Id }^";
+            }
+
+            output = output.Substring(0, output.Length - 1); // am scos ultimul "^" din string
+
+            return output;
+
+
+        }
+
+        private static string ConvertPrizesToString(List<PrizeModel> prizes)
+        {
+
+            string output = "";
+
+            if (prizes.Count == 0)
+            {
+
+                return "";
+
+            }
+
+            foreach (PrizeModel p in prizes)
+            {
+                output += $"{ p.Id }|";
+            }
+
+            output = output.Substring(0, output.Length - 1); // am scos ultimul "|" din string
+
+            return output;
+
+        }
+
+
+        private static string ConvertTeamListToString(List<TeamModel> teams)
+        {
+
+            string output = "";
+
+            if (teams.Count == 0)
+            {
+
+                return "";
+
+            }
+
+            foreach (TeamModel t in teams)
+            {
+                output += $"{ t.Id }|";
+            }
+
+            output = output.Substring(0, output.Length - 1); // am scos ultimul "|" din string
+
+            return output;
+
+        }
+
+
 
         public static void SaveToTeamFile(this List<TeamModel> models , string fileName)
         {

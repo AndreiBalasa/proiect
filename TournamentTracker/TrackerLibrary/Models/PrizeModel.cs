@@ -25,8 +25,9 @@ namespace TrackerLibrary.Models
 
         }
 
-        public PrizeModel(string placeName , string placeNumber , string prizeAmount , string prizePercentage)
+        public PrizeModel( string placeName , string placeNumber , string prizeAmount , string prizePercentage)
         {
+
             PlaceName = placeName;
 
             int placeNumberValue = 0;

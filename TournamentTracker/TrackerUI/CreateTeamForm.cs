@@ -17,11 +17,14 @@ namespace TrackerUI
 
         private List<PersonModel> availableTeamMembers = GlobalConfig.Connection.GetPerson_All();
         private List<PersonModel> selectedTeamMembers = new List<PersonModel>();
+        private ITeamRequester callingForm;
 
 
-        public CreateTeamForm()
+        public CreateTeamForm(ITeamRequester caller)
         {
             InitializeComponent();
+
+            callingForm = caller;
 
            // CreateSampleData();  // a fost pt testing
 
@@ -31,17 +34,17 @@ namespace TrackerUI
 
         
 
-        private void CreateSampleData()
-        {
+        //private void CreateSampleData()
+        //{
 
-            availableTeamMembers.Add(new PersonModel { FirstName = "Andrei", Lastname = "Balasa" });
-            availableTeamMembers.Add(new PersonModel { FirstName = "Adolf", Lastname = "Darren" });
+        //    availableTeamMembers.Add(new PersonModel { FirstName = "Andrei", Lastname = "Balasa" });
+        //    availableTeamMembers.Add(new PersonModel { FirstName = "Adolf", Lastname = "Darren" });
 
 
-            selectedTeamMembers.Add(new PersonModel { FirstName = "Tiganu", Lastname = "Madalin" });
+        //    selectedTeamMembers.Add(new PersonModel { FirstName = "Tiganu", Lastname = "Madalin" });
 
-            selectedTeamMembers.Add(new PersonModel { FirstName = "Vladut", Lastname = "Hitano" });
-        }
+        //    selectedTeamMembers.Add(new PersonModel { FirstName = "Vladut", Lastname = "Hitano" });
+        //}
 
         private void WireUpLists()
         {
@@ -157,10 +160,11 @@ namespace TrackerUI
             t.TeamName = teamNameValue.Text;
             t.TeamMembers = selectedTeamMembers;
 
-            t = GlobalConfig.Connection.CreateTeam(t);
+            GlobalConfig.Connection.CreateTeam(t);
 
-            //TODO - daca nu inchizi formul , macar reseteaza l
+            callingForm.TeamComplete(t);
 
+            this.Close();
 
 
         }

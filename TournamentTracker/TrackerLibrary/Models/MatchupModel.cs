@@ -9,6 +9,8 @@ namespace TrackerLibrary.Models
         /// <summary>
         /// Echipele ce participa in acest meci
         /// </summary>
+        /// 
+        public int Id { get; set; }
         public List<MatchupEntryModel> Entries { get; set; } = new List<MatchupEntryModel>();
 
         /// <summary>
